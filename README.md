@@ -1,5 +1,10 @@
 # go-kit-example-hello-world
 
+## Install kit
+```
+go get github.com/kujtimiihoxha/kit
+```
+
 ## Create a new service
 ```
 # kit new service hello
