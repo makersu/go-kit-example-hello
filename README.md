@@ -2,7 +2,7 @@
 
 ## Install kit
 ```
-
+go-kit-example-hello> go get github.com/go-kit/kit
 go-kit-example-hello> go get github.com/kujtimiihoxha/kit
 ```
 
@@ -329,3 +329,9 @@ GRPC Client Error: empty string
 
 12 directories, 21 files
 ```
+
+## TODO
+- docker integration
+- service discovery
+- distributed tracing
+- ...
