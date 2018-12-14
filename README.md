@@ -45,6 +45,9 @@ ts=2018-12-13T05:34:42.175783Z caller=middleware.go:33 method=Hello transport_er
 ```
 go-kit-example-hello> curl -XPOST -d'{"s":"world"}' localhost:8081/hello
 {"rs":"Hello, world","err":null}
+
+go-kit-example-hello> curl -XPOST -d'{"s":""}' localhost:8081/hello
+{"err":"empty string"}
 ```
 
 ```
@@ -76,9 +79,9 @@ go-kit-example-hello> curl -XPOST -d'{"s":"world"}' localhost:8081/hello
 go-kit-example-hello> kit g c hello
 ```
 
-## Create Client
+## Create Http Client
 ```
-go-kit-example-hello> vi hello/client/main.go
+go-kit-example-hello> vi hello/client/httpmain.go
 ```
 
 ```
@@ -88,30 +91,39 @@ import (
 	"context"
 	"fmt"
 
-	client "github.com/makersu/go-kit-example-hello/hello/client/http"
+	clienthttp "github.com/makersu/go-kit-example-hello/hello/client/http"
 
 	"github.com/go-kit/kit/transport/http"
 )
 
 func main() {
-	svc, err := client.New("http://localhost:8081", map[string][]http.ClientOption{})
+	svc, err := clienthttp.New("http://localhost:8081", map[string][]http.ClientOption{})
 	if err != nil {
 		panic(err)
 	}
 
-	rs, err := svc.Hello(context.Background(), "Client World")
+	rs, err := svc.Hello(context.Background(), "Http Client")
 	if err != nil {
-		fmt.Println("Error:", err)
+		fmt.Println("HTTP Client Error:", err)
 		return
 	}
-	fmt.Println("Result:", rs)
+	fmt.Println("HTTP Client Result:", rs)
+
+	// empty string
+	rs, err = svc.Hello(context.Background(), "")
+	if err != nil {
+		fmt.Println("HTTP Client Error:", err)
+		return
+	}
+	fmt.Println("HTTP Client Result:", rs)
 }
 ```
 
-## Test Client
+## Test Http Client
 ```
-go-kit-example-hello> go run hello/client/main.go
-Result: Hello, Client World
+go-kit-example-hello> go run hello/client/httpmain.go
+HTTP Client Result: Hello, Http Client
+HTTP Client Error: empty string
 ```
 
 ```
@@ -121,7 +133,7 @@ Result: Hello, Client World
     ├── client
     │   ├── http
     │   │   └── http.go
-    │   └── main.go
+    │   └── httpmain.go
     ├── cmd
     │   ├── main.go
     │   └── service

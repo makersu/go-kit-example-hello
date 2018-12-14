@@ -4,9 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"net/http"
+
 	http1 "github.com/go-kit/kit/transport/http"
 	endpoint "github.com/makersu/go-kit-example-hello/hello/pkg/endpoint"
-	"net/http"
 )
 
 // makeHelloHandler creates the handler logic
@@ -52,5 +53,5 @@ func err2code(err error) int {
 }
 
 type errorWrapper struct {
-	Error string `json:"error"`
+	Error string `json:"err"`
 }
