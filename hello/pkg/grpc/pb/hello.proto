@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package pb;
+
+
+//The Hello service definition.
+service Hello {
+ rpc Hello (HelloRequest) returns (HelloReply);
+}
+
+message HelloRequest {
+ string s = 1;
+}
+
+message HelloReply {
+ string rs  = 1;
+ string err = 2;
+}
+

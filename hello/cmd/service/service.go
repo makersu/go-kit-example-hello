@@ -3,11 +3,19 @@ package service
 import (
 	"flag"
 	"fmt"
+	"net"
+	http1 "net/http"
+	"os"
+	"os/signal"
+	"syscall"
+
 	endpoint1 "github.com/go-kit/kit/endpoint"
 	log "github.com/go-kit/kit/log"
 	prometheus "github.com/go-kit/kit/metrics/prometheus"
 	lightsteptracergo "github.com/lightstep/lightstep-tracer-go"
 	endpoint "github.com/makersu/go-kit-example-hello/hello/pkg/endpoint"
+	grpc "github.com/makersu/go-kit-example-hello/hello/pkg/grpc"
+	pb "github.com/makersu/go-kit-example-hello/hello/pkg/grpc/pb"
 	http "github.com/makersu/go-kit-example-hello/hello/pkg/http"
 	service "github.com/makersu/go-kit-example-hello/hello/pkg/service"
 	group "github.com/oklog/oklog/pkg/group"
@@ -15,20 +23,14 @@ import (
 	zipkingoopentracing "github.com/openzipkin/zipkin-go-opentracing"
 	prometheus1 "github.com/prometheus/client_golang/prometheus"
 	promhttp "github.com/prometheus/client_golang/prometheus/promhttp"
-	"net"
-	http1 "net/http"
-	"os"
-	"os/signal"
+	grpc1 "google.golang.org/grpc"
 	appdash "sourcegraph.com/sourcegraph/appdash"
 	opentracing "sourcegraph.com/sourcegraph/appdash/opentracing"
-	"syscall"
 )
 
 var tracer opentracinggo.Tracer
 var logger log.Logger
 
-// Define our flags. Your service probably won't need to bind listeners for
-// all* supported transports, but we do it here for demonstration purposes.
 var fs = flag.NewFlagSet("hello", flag.ExitOnError)
 var debugAddr = fs.String("debug.addr", ":8080", "Debug and metrics listen address")
 var httpAddr = fs.String("http-addr", ":8081", "HTTP listen address")
@@ -44,13 +46,10 @@ var appdashAddr = fs.String("appdash-addr", "", "Enable Appdash tracing via an A
 func Run() {
 	fs.Parse(os.Args[1:])
 
-	// Create a single logger, which we'll use and give to other components.
 	logger = log.NewLogfmtLogger(os.Stderr)
 	logger = log.With(logger, "ts", log.DefaultTimestampUTC)
 	logger = log.With(logger, "caller", log.DefaultCaller)
 
-	//  Determine which tracer to use. We'll pass the tracer to all the
-	// components that use it, as a dependency
 	if *zipkinURL != "" {
 		logger.Log("tracer", "Zipkin", "URL", *zipkinURL)
 		collector, err := zipkingoopentracing.NewHTTPCollector(*zipkinURL)
@@ -89,7 +88,6 @@ func Run() {
 }
 func initHttpHandler(endpoints endpoint.Endpoints, g *group.Group) {
 	options := defaultHttpOptions(logger, tracer)
-	// Add your http options here
 
 	httpHandler := http.NewHTTPHandler(endpoints, options)
 	httpListener, err := net.Listen("tcp", *httpAddr)
@@ -107,7 +105,6 @@ func initHttpHandler(endpoints endpoint.Endpoints, g *group.Group) {
 func getServiceMiddleware(logger log.Logger) (mw []service.Middleware) {
 	mw = []service.Middleware{}
 	mw = addDefaultServiceMiddleware(logger, mw)
-	// Append your middleware here
 
 	return
 }
@@ -120,7 +117,6 @@ func getEndpointMiddleware(logger log.Logger) (mw map[string][]endpoint1.Middlew
 		Subsystem: "hello",
 	}, []string{"method", "success"})
 	addDefaultEndpointMiddleware(logger, duration, mw)
-	// Add you endpoint middleware here
 
 	return
 }
@@ -151,4 +147,23 @@ func initCancelInterrupt(g *group.Group) {
 	}, func(error) {
 		close(cancelInterrupt)
 	})
+}
+
+func initGRPCHandler(endpoints endpoint.Endpoints, g *group.Group) {
+	options := defaultGRPCOptions(logger, tracer)
+
+	grpcServer := grpc.NewGRPCServer(endpoints, options)
+	grpcListener, err := net.Listen("tcp", *grpcAddr)
+	if err != nil {
+		logger.Log("transport", "gRPC", "during", "Listen", "err", err)
+	}
+	g.Add(func() error {
+		logger.Log("transport", "gRPC", "addr", *grpcAddr)
+		baseServer := grpc1.NewServer()
+		pb.RegisterHelloServer(baseServer, grpcServer)
+		return baseServer.Serve(grpcListener)
+	}, func(error) {
+		grpcListener.Close()
+	})
+
 }

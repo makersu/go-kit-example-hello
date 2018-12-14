@@ -6,6 +6,7 @@ import (
 	log "github.com/go-kit/kit/log"
 	prometheus "github.com/go-kit/kit/metrics/prometheus"
 	opentracing "github.com/go-kit/kit/tracing/opentracing"
+	grpc "github.com/go-kit/kit/transport/grpc"
 	http "github.com/go-kit/kit/transport/http"
 	endpoint "github.com/makersu/go-kit-example-hello/hello/pkg/endpoint"
 	http1 "github.com/makersu/go-kit-example-hello/hello/pkg/http"
@@ -17,10 +18,15 @@ import (
 func createService(endpoints endpoint.Endpoints) (g *group.Group) {
 	g = &group.Group{}
 	initHttpHandler(endpoints, g)
+	initGRPCHandler(endpoints, g)
 	return g
 }
 func defaultHttpOptions(logger log.Logger, tracer opentracinggo.Tracer) map[string][]http.ServerOption {
 	options := map[string][]http.ServerOption{"Hello": {http.ServerErrorEncoder(http1.ErrorEncoder), http.ServerErrorLogger(logger), http.ServerBefore(opentracing.HTTPToContext(tracer, "Hello", logger))}}
+	return options
+}
+func defaultGRPCOptions(logger log.Logger, tracer opentracinggo.Tracer) map[string][]grpc.ServerOption {
+	options := map[string][]grpc.ServerOption{"Hello": {grpc.ServerErrorLogger(logger), grpc.ServerBefore(opentracing.GRPCToContext(tracer, "Hello", logger))}}
 	return options
 }
 func addDefaultEndpointMiddleware(logger log.Logger, duration *prometheus.Summary, mw map[string][]endpoint1.Middleware) {

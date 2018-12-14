@@ -2,6 +2,7 @@
 
 ## Install kit
 ```
+
 go-kit-example-hello> go get github.com/kujtimiihoxha/kit
 ```
 
@@ -74,7 +75,7 @@ go-kit-example-hello> curl -XPOST -d'{"s":""}' localhost:8081/hello
 7 directories, 11 files
 ```
 
-## Generate the client library
+## Generate the HTTP client library
 ```
 go-kit-example-hello> kit g c hello
 ```
@@ -152,4 +153,179 @@ HTTP Client Error: empty string
             └── service.go
 
 9 directories, 13 files
+```
+
+## Install GRPC
+```
+go get -u github.com/golang/protobuf/{proto,protoc-gen-go}
+```
+
+## Generate GRPC transport
+```
+kit g s hello --dmw -t grpc
+```
+
+## Define proto
+```
+go-kit-example-hello> vi hello/pkg/grpc/pb/hello.proto
+```
+```
+syntax = "proto3";
+
+package pb;
+
+
+//The Hello service definition.
+service Hello {
+ rpc Hello (HelloRequest) returns (HelloReply);
+}
+
+message HelloRequest {
+ string s = 1;
+}
+
+message HelloReply {
+ string rs  = 1;
+ string err = 2;
+}
+```
+
+## Generate GRPC server and client stubs(./hello/pkg/grpc/pb/hello.pb.go)
+```
+go-kit-example-hello> cd hello/pkg/grpc/pb
+go-kit-example-hello/hello/pkg/grpc/pb> ./compile.sh
+```
+
+## Implement decoder and encoder for GRPC transport(./hello/pkg/grpc/handler.go)
+```
+func decodeHelloRequest(_ context.Context, r interface{}) (interface{}, error) {
+	req := r.(*pb.HelloRequest)
+	return endpoint.HelloRequest{S: req.S}, nil
+}
+
+func encodeHelloResponse(_ context.Context, r interface{}) (interface{}, error) {
+	resp := r.(endpoint.HelloResponse)
+	if resp.Err != nil {
+		return &pb.HelloReply{Rs: "", Err: resp.Err.Error()}, nil
+	}
+	return &pb.HelloReply{Rs: resp.Rs, Err: "null"}, nil
+}
+```
+
+## Generate the GRPC client library
+```
+go-kit-example-hello> kit g c hello -t grpc
+```
+
+## Implement the GRPC client library
+```
+func encodeHelloRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(pkgendpoint.HelloRequest)
+	return &pb.HelloRequest{S: req.S}, nil
+}
+
+func decodeHelloResponse(_ context.Context, reply interface{}) (interface{}, error) {
+	hrep := reply.(*pb.HelloReply)
+
+	if hrep.Err != "null" {
+		return pkgendpoint.HelloResponse{Rs: "null", Err: errors.New(hrep.Err)}, nil
+	}
+
+	return pkgendpoint.HelloResponse{Rs: hrep.Rs, Err: nil}, nil
+}
+```
+
+## Create GRPC Client
+```
+go-kit-example-hello> vi hello/client/grpcmain.go
+```
+
+```
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	grpckit "github.com/go-kit/kit/transport/grpc"
+	client "github.com/makersu/go-kit-example-hello/hello/client/grpc"
+	grpc "google.golang.org/grpc"
+)
+
+func main() {
+	conn, err := grpc.Dial("localhost:8082", grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("did not connect: %v", err)
+	}
+	defer conn.Close()
+
+	svc, err := client.New(conn, map[string][]grpckit.ClientOption{})
+	if err != nil {
+		panic(err)
+	}
+
+	rs, err := svc.Hello(context.Background(), "GRPC Client")
+	if err != nil {
+		fmt.Println("GRPC Client Error:", err)
+		return
+	}
+	fmt.Println("GRPC Client Result:", rs)
+
+	// empty string
+	rs, err = svc.Hello(context.Background(), "")
+	if err != nil {
+		fmt.Println("GRPC Client Error:", err)
+		return
+	}
+	fmt.Println("GRPC Client Result:", rs)
+
+}
+
+```
+
+## Test GRPC Client
+```
+go-kit-example-hello> go run hello/client/grpcmain.go
+GRPC Client Result: Hello, GRPC Client
+GRPC Client Error: empty string
+```
+
+```
+.
+├── README.md
+└── hello
+    ├── client
+    │   ├── grpc
+    │   │   └── grpc.go
+    │   ├── grpcmain.go
+    │   ├── http
+    │   │   └── http.go
+    │   ├── httpmain.go
+    │   └── main.go
+    ├── cmd
+    │   ├── main.go
+    │   └── service
+    │       ├── service.go
+    │       └── service_gen.go
+    └── pkg
+        ├── endpoint
+        │   ├── endpoint.go
+        │   ├── endpoint_gen.go
+        │   └── middleware.go
+        ├── grpc
+        │   ├── handler.go
+        │   ├── handler_gen.go
+        │   └── pb
+        │       ├── compile.sh
+        │       ├── hello.pb.go
+        │       └── hello.proto
+        ├── http
+        │   ├── handler.go
+        │   └── handler_gen.go
+        └── service
+            ├── middleware.go
+            └── service.go
+
+12 directories, 21 files
 ```
