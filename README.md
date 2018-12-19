@@ -20,10 +20,10 @@ type HelloService interface {
 	Hello(ctx context.Context, s string) (rs string, err error)
 }
 ```
-## Initiate hello service
+## Initiate hello service( with default middleware)
 ```
-# kit generate service hello
-go-kit-example-hello> kit g s hello
+# kit generate service hello --dmw
+go-kit-example-hello> kit g s hello -w
 ```
 
 ## Implement hello service (hello/pkg/service/service.go)
