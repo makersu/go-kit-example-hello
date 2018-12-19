@@ -6,13 +6,13 @@ go-kit-example-hello> go get github.com/go-kit/kit
 go-kit-example-hello> go get github.com/kujtimiihoxha/kit
 ```
 
-## Create a new service
+## Create hello service
 ```
 # kit new service hello
 go-kit-example-hello> kit n s hello
 ```
 
-## Define service (hello/pkg/service/service.go)
+## Define hello service (hello/pkg/service/service.go)
 ```
 type HelloService interface {
 	// Add your methods here
@@ -20,12 +20,13 @@ type HelloService interface {
 	Hello(ctx context.Context, s string) (rs string, err error)
 }
 ```
-
-## Implement service (hello/pkg/service/service.go)
+## Initiate hello service
 ```
 # kit generate service hello
 go-kit-example-hello> kit g s hello
 ```
+
+## Implement hello service (hello/pkg/service/service.go)
 
 ```
 // TODO implement the business logic of Hello
