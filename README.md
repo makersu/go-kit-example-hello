@@ -329,6 +329,27 @@ GRPC Client Error: empty string
 
 12 directories, 21 files
 ```
+```
+wc -l $(find ./ -name "*.go")
+     169 .//cmd/service/service.go
+      43 .//cmd/service/service_gen.go
+       7 .//cmd/main.go
+      40 .//client/grpcmain.go
+      47 .//client/grpc/grpc.go
+      67 .//client/http/http.go
+      32 .//client/httpmain.go
+      45 .//pkg/grpc/handler.go
+     201 .//pkg/grpc/pb/hello.pb.go
+      17 .//pkg/grpc/handler_gen.go
+      57 .//pkg/http/handler.go
+      16 .//pkg/http/handler_gen.go
+      24 .//pkg/endpoint/endpoint_gen.go
+      53 .//pkg/endpoint/endpoint.go
+      39 .//pkg/endpoint/middleware.go
+      37 .//pkg/service/service.go
+      31 .//pkg/service/middleware.go
+     925 total
+```
 
 ## TODO
 - docker integration
