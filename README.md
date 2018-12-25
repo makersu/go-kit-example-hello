@@ -6,13 +6,13 @@ go-kit-example-hello> go get github.com/go-kit/kit
 go-kit-example-hello> go get github.com/kujtimiihoxha/kit
 ```
 
-## Create a new service
+## Create hello service
 ```
 # kit new service hello
 go-kit-example-hello> kit n s hello
 ```
 
-## Define service (string/pkg/service/service.go)
+## Define hello service (hello/pkg/service/service.go)
 ```
 type HelloService interface {
 	// Add your methods here
@@ -20,8 +20,14 @@ type HelloService interface {
 	Hello(ctx context.Context, s string) (rs string, err error)
 }
 ```
+## Initiate hello service( with default middleware)
+```
+# kit generate service hello --dmw
+go-kit-example-hello> kit g s hello -w
+```
 
-## Implement service
+## Implement hello service (hello/pkg/service/service.go)
+
 ```
 // TODO implement the business logic of Hello
 func (b *basicHelloService) Hello(ctx context.Context, s string) (rs string, err error) {
@@ -80,10 +86,7 @@ go-kit-example-hello> curl -XPOST -d'{"s":""}' localhost:8081/hello
 go-kit-example-hello> kit g c hello
 ```
 
-## Create Http Client
-```
-go-kit-example-hello> vi hello/client/httpmain.go
-```
+## Create Http Client (hello/client/httpmain.go)
 
 ```
 package main
