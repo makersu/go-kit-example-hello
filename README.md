@@ -233,10 +233,10 @@ func decodeHelloResponse(_ context.Context, reply interface{}) (interface{}, err
 	hrep := reply.(*pb.HelloReply)
 
 	if hrep.Err != "null" {
-		return pkgendpoint.HelloResponse{Rs: "null", Err: errors.New(hrep.Err)}, nil
+		return endpoint1.HelloResponse{Rs: "null", Err: errors.New(hrep.Err)}, nil
 	}
 
-	return pkgendpoint.HelloResponse{Rs: hrep.Rs, Err: nil}, nil
+	return endpoint1.HelloResponse{Rs: hrep.Rs, Err: nil}, nil
 }
 ```
 
