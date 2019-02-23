@@ -55,6 +55,8 @@ go-kit-example-hello> curl -XPOST -d'{"s":"world"}' localhost:8081/hello
 
 go-kit-example-hello> curl -XPOST -d'{"s":""}' localhost:8081/hello
 {"err":"empty string"}
+
+go-kit-example-hello> curl localhost:8080/metrics
 ```
 
 ```
